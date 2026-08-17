@@ -1109,7 +1109,21 @@
         </div>
       </div>
 
-      <form class="form-card" id="contactForm">
+      <form class="form-card" id="contactForm"
+      action="https://api.web3forms.com/submit"
+      method="POST">
+
+    <input type="hidden"
+           name="access_key"
+           value="6e5100a1-5120-44c9-97ad-a4f1029c6b51">
+
+    <input type="hidden"
+           name="subject"
+           value="Nueva solicitud — ORVERX WEBWORKS">
+
+    <input type="hidden"
+           name="from_name"
+           value="ORVERX WEBWORKS">
         <div class="form-row">
           <div class="field">
             <label for="nombre">Nombre completo</label>
@@ -1207,48 +1221,76 @@
 <script>
   document.getElementById('year').textContent = new Date().getFullYear();
 
+  // MENÚ
   const menuToggle = document.getElementById('menuToggle');
   const navLinks = document.getElementById('navLinks');
-  menuToggle.addEventListener('click', () => {
-    const isOpen = navLinks.classList.toggle('open');
-    menuToggle.setAttribute('aria-expanded', isOpen);
-  });
-  navLinks.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
-    navLinks.classList.remove('open');
-    menuToggle.setAttribute('aria-expanded', 'false');
-  }));
 
+  if (menuToggle && navLinks) {
+    menuToggle.addEventListener('click', () => {
+      const isOpen = navLinks.classList.toggle('open');
+      menuToggle.setAttribute('aria-expanded', isOpen);
+    });
+
+    navLinks.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        navLinks.classList.remove('open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
+
+  // FORMULARIO
   const form = document.getElementById('contactForm');
   const formMsg = document.getElementById('formMsg');
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const data = new FormData(form);
-    const nombre = data.get('nombre');
-    const correo = data.get('correo');
-    const telefono = data.get('telefono') || 'No proporcionado';
-    const tipo = data.get('tipo');
-    const presupuesto = data.get('presupuesto') || 'No especificado';
-    const mensaje = data.get('mensaje');
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
-    const subject = encodeURIComponent(`Solicitud de asesoría — ${nombre}`);
-    const body = encodeURIComponent(
-`Nombre: ${nombre}
-Correo: ${correo}
-Teléfono: ${telefono}
-Tipo de proyecto: ${tipo}
-Presupuesto estimado: ${presupuesto}
+      const button = form.querySelector('button');
 
-Mensaje:
-${mensaje}`
-    );
+      button.disabled = true;
+      button.textContent = 'Enviando...';
 
-    window.location.href = `mailto:orvexwebworksoficial@gmail.com?subject=${subject}&body=${body}`;
+      const formData = new FormData(form);
 
-    formMsg.textContent = '¡Listo! Se abrió tu cliente de correo con la solicitud lista para enviarse.';
-    formMsg.classList.add('ok');
-  });
+      try {
+        const response = await fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          formMsg.textContent =
+            '¡Solicitud enviada correctamente! Nos pondremos en contacto contigo pronto.';
+
+          formMsg.classList.remove('error');
+          formMsg.classList.add('ok');
+
+          form.reset();
+        } else {
+          throw new Error('No se pudo enviar el formulario.');
+        }
+
+      } catch (error) {
+        formMsg.textContent =
+          'Hubo un problema al enviar la solicitud. Inténtalo nuevamente.';
+
+        formMsg.classList.remove('ok');
+        formMsg.classList.add('error');
+
+      } finally {
+        button.disabled = false;
+        button.textContent = 'Enviar solicitud';
+      }
+    });
+  }
 </script>
-
+  
 </body>
 </html>
